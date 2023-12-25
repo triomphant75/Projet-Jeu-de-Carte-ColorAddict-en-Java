@@ -1,6 +1,5 @@
 package idmc.fr.Controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -146,50 +145,51 @@ public class PartieJeuAdeuxController {
     }
 
 
-    private void afficherCartesJoueur(ArrayList<Carte> mainJoueur) {
-    Collections.shuffle(mainJoueur);
+    @FXML
+    //Méthode pour afficher les cartes dans la main du joueur
+    
+     private void afficherCartesJoueur (ArrayList<Carte> mainJoueur) {
+         Collections.shuffle(mainJoueur); 
+ 
+        AppData.setJeuDeCarte(AppData.GenererCarte());
+        // Nettoyage les boutons précédents s'ils existent
+        idMainJoueur.getChildren().clear();
+        idCarteMain = new ArrayList<>();
+        mainJoueur.get(0);
+        ArrayList<Carte> nouvellesCartes = new ArrayList<>();
 
-    AppData.setJeuDeCarte(AppData.GenererCarte());
-    idMainJoueur.getChildren().clear();
-    idCarteMain = new ArrayList<>();
-    mainJoueur.get(0);
-    ArrayList<Carte> nouvellesCartes = new ArrayList<>();
+        // Création d'un bouton pour chaque carte dans la main du joueur
+        for (Carte carte : mainJoueur) {
+            Button carteButton = new Button(); 
+         
+            String text = carte.getNomCarte()+" "+carte.getCouleurCarte();
+            carteButton.setText(text); // le texte  (ou l'image si y'a possibilité de mettre )  correspondant à chaque carte
+            carteButton.setStyle("-fx-font-size: 12px; -fx-min-width: 100px; -fx-min-height: 130px;"); // style des boutons
+            
+            if (carte.getCouleurCarte() == Couleur.multicolore) {
+                carteButton.setOnAction(e -> {
+                    Carte nouvelleCarte = (Carte) choisirCouleurPourCarteMulticolore(carte);
+                    if (nouvelleCarte != null) {
+                        nouvellesCartes.add(nouvelleCarte);
+                    }
+                });
+            } else {
+                carteButton.setOnAction(e -> jouerCarte(carte));
+            }
 
-    for (Carte carte : mainJoueur) {
-        Button carteButton = new Button();
-
-        // Charger l'image correspondante à la carte
-        String imagePath = "/idmc/fr/" + carte.getNomCarte() + carte.getCouleurCarte();
-        Image image = new Image(new File(imagePath).toURI().toString());
-        ImageView imageView = new ImageView(image);
-
-        // Appliquer l'image à un bouton
-        carteButton.setGraphic(imageView);
-
-        carteButton.setStyle("-fx-min-width: 100px; -fx-min-height: 130px;");
-
-        if (carte.getCouleurCarte() == Couleur.multicolore) {
-            carteButton.setOnAction(e -> {
-                Carte nouvelleCarte = (Carte) choisirCouleurPourCarteMulticolore(carte);
-                if (nouvelleCarte != null) {
-                    nouvellesCartes.add(nouvelleCarte);
-                }
-            });
-        } else {
-            carteButton.setOnAction(e -> jouerCarte(carte));
+            idCarteMain.add(carteButton);
+            idMainJoueur.getChildren().add(carteButton);
         }
 
-        idCarteMain.add(carteButton);
-        idMainJoueur.getChildren().add(carteButton);
+        mainJoueur.removeAll(nouvellesCartes);
+
+        // appel de la méthode déterminer un vainqueur 
+        determinerVainqueur();
+        // appel de la méthode match nul
+        determinerMatchNul();
+
+        
     }
-
-    mainJoueur.removeAll(nouvellesCartes);
-
-    // appel de la méthode déterminer un vainqueur 
-    determinerVainqueur();
-    // appel de la méthode match nul
-    determinerMatchNul();
-}
 
     private Object choisirCouleurPourCarteMulticolore(Carte carte) {
         List<String> couleurs = List.of("Rouge", "Bleu", "Vert", "Jaune", "Orange", "Rose", "Noir"); // Liste des couleurs possibles
@@ -264,7 +264,7 @@ private void pioche() {
     ArrayList<Carte> jeuDeCarte = AppData.getJeuDeCarte();
     Alert alert = new Alert(AlertType.INFORMATION);
     int limiteCartesMain = 5; // Limite de cartes en main
-    int limitePiochesAutorisees = 10; // Limite de pioches autorisées par joueur
+    int limitePiochesAutorisees = 5; // Limite de pioches autorisées par joueur
 
     int indexJoueurActuel = IndexJoueurActuel;
     Joueur joueurActuel = joueursList.get(indexJoueurActuel);
@@ -293,9 +293,9 @@ private void pioche() {
         // Et on alimente la pioche en fonction du nombre de joueurs
         int limiteCartesPioche;
         if (joueursList.size() == 2) {
-            limiteCartesPioche = 10; // 3 cartes pour 2 joueurs
+            limiteCartesPioche = 3; // 3 cartes pour 2 joueurs
         } else if (joueursList.size() == 3) {
-            limiteCartesPioche = 8; // 2 cartes pour 3 joueurs
+            limiteCartesPioche = 2; // 2 cartes pour 3 joueurs
         } else {
             // Normalement on peut définir jusqu'à 6 joueurs 
             limiteCartesPioche = 4; // Modifier cette valeur selon vos besoins
